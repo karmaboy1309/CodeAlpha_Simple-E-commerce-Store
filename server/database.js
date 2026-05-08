@@ -52,7 +52,7 @@ const initDb = () => {
                 const products = [
                     ['Premium Wireless Headphones', 'High-quality noise-canceling wireless headphones.', 299.99, 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=600&q=80', 50],
                     ['Minimalist Watch', 'Elegant everyday watch with a genuine leather strap.', 129.50, 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80', 30],
-                    ['Smart Fitness Tracker', 'Track your daily activity, heart rate, and sleep patterns.', 89.99, 'https://images.unsplash.com/photo-1575311373937-040b8e1fd5b0?auto=format&fit=crop&w=600&q=80', 100],
+                    ['Smart Fitness Tracker', 'Track your daily activity, heart rate, and sleep patterns.', 89.99, 'https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?auto=format&fit=crop&w=600&q=80', 100],
                     ['Polaroid Camera', 'Vintage style instant camera with modern features.', 149.00, 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?auto=format&fit=crop&w=600&q=80', 15],
                     ['Mechanical Keyboard', 'RGB mechanical keyboard with tactile blue switches.', 109.99, 'https://images.unsplash.com/photo-1595225476474-87563907a212?auto=format&fit=crop&w=600&q=80', 40],
                     ['Eco-friendly Water Bottle', 'Insulated stainless steel water bottle, keeps drinks cold for 24h.', 35.00, 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&q=80', 200]
