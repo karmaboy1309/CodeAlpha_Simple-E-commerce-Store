@@ -91,4 +91,12 @@ A modern, responsive, full-stack E-commerce web application built from scratch w
 
 ---
 
+## 📝 Changelog
+
+- **Fix:** Corrected broken Unsplash image URL for the Smart Fitness Tracker.
+- **Fix:** Resolved template literal escaping issue in the shopping cart logic, restoring full cart functionality.
+- **Chore:** Removed `package-lock.json` for a cleaner repository structure.
+
+---
+
 *Built with ❤️ for the CodeAlpha Internship.*
