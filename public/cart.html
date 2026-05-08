@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleStore - Shopping Cart</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">SimpleStore.</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="cart.html">Cart <span class="cart-count">0</span></a>
+                <span class="logged-out-only"><a href="login.html">Login</a></span>
+                <span class="logged-out-only"><a href="register.html" class="btn" style="padding: 0.5rem 1rem;">Sign Up</a></span>
+                <span class="logged-in-only auth-hidden" id="nav-username" style="font-weight: 600;"></span>
+                <span class="logged-in-only auth-hidden"><a href="#" id="logout-btn">Logout</a></span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1 style="margin-bottom: 2rem;">Shopping Cart</h1>
+        
+        <div id="alert-container" class="alert"></div>
+
+        <div class="cart-layout" id="cart-layout">
+            <div class="cart-items" id="cart-items-container">
+                <!-- Items injected here -->
+            </div>
+            
+            <div class="cart-summary">
+                <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Order Summary</h3>
+                <div class="summary-row">
+                    <span>Subtotal</span>
+                    <span id="summary-subtotal">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (8%)</span>
+                    <span id="summary-tax">$0.00</span>
+                </div>
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span id="summary-total" style="float:right;">$0.00</span>
+                </div>
+                <button id="checkout-btn" class="btn" style="width: 100%;">Proceed to Checkout</button>
+            </div>
+        </div>
+        
+        <div id="empty-cart-msg" style="display: none; text-align: center; padding: 4rem 0;">
+            <h2 style="margin-bottom: 1rem; color: var(--text-muted);">Your cart is empty.</h2>
+            <a href="index.html" class="btn">Continue Shopping</a>
+        </div>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+        function renderCart() {
+            const cart = getCart();
+            const container = document.getElementById('cart-items-container');
+            const layout = document.getElementById('cart-layout');
+            const emptyMsg = document.getElementById('empty-cart-msg');
+
+            if (cart.length === 0) {
+                layout.style.display = 'none';
+                emptyMsg.style.display = 'block';
+                return;
+            }
+
+            layout.style.display = 'grid';
+            emptyMsg.style.display = 'none';
+            container.innerHTML = '';
+            
+            let subtotal = 0;
+
+            cart.forEach((item, index) => {
+                subtotal += item.price * item.quantity;
+                
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <img src="\${item.image_url}" alt="\${item.name}">
+                    <div class="cart-item-info">
+                        <div class="cart-item-title">\${item.name}</div>
+                        <div class="cart-item-price">\${formatPrice(item.price)}</div>
+                    </div>
+                    <div class="cart-item-controls">
+                        <button class="qty-btn" onclick="updateQty(\${index}, -1)">-</button>
+                        <span>\${item.quantity}</span>
+                        <button class="qty-btn" onclick="updateQty(\${index}, 1)">+</button>
+                        <button class="btn btn-danger" style="padding: 0.5rem; margin-left: 1rem;" onclick="removeItem(\${index})">Remove</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            const tax = subtotal * 0.08;
+            const total = subtotal + tax;
+
+            document.getElementById('summary-subtotal').textContent = formatPrice(subtotal);
+            document.getElementById('summary-tax').textContent = formatPrice(tax);
+            document.getElementById('summary-total').textContent = formatPrice(total);
+            
+            // Store total for checkout
+            layout.dataset.total = total;
+        }
+
+        window.updateQty = function(index, delta) {
+            const cart = getCart();
+            cart[index].quantity += delta;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            saveCart(cart);
+            renderCart();
+        };
+
+        window.removeItem = function(index) {
+            const cart = getCart();
+            cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        };
+
+        function showAlert(msg, type) {
+            const alert = document.getElementById('alert-container');
+            alert.textContent = msg;
+            alert.className = \`alert alert-\${type}\`;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 3000);
+        }
+
+        document.getElementById('checkout-btn').addEventListener('click', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html?redirect=cart';
+                return;
+            }
+
+            const cart = getCart();
+            const total = parseFloat(document.getElementById('cart-layout').dataset.total);
+            
+            try {
+                const response = await fetch(\`\${API_URL}/orders\`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': \`Bearer \${token}\`
+                    },
+                    body: JSON.stringify({ items: cart, totalPrice: total })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    saveCart([]); // Clear cart
+                    renderCart();
+                    document.getElementById('cart-layout').style.display = 'none';
+                    document.getElementById('empty-cart-msg').style.display = 'none';
+                    
+                    const successDiv = document.createElement('div');
+                    successDiv.style.textAlign = 'center';
+                    successDiv.style.padding = '4rem 0';
+                    successDiv.innerHTML = \`
+                        <h2 style="color: #059669; margin-bottom: 1rem;">🎉 Order Confirmed!</h2>
+                        <p style="margin-bottom: 2rem;">Thank you for your purchase. Order ID: #\${data.orderId}</p>
+                        <a href="index.html" class="btn">Continue Shopping</a>
+                    \`;
+                    document.querySelector('main').appendChild(successDiv);
+                } else {
+                    showAlert(data.error || 'Failed to place order', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error occurred', 'error');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', renderCart);
+    </script>
+</body>
+</html>

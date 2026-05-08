@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleStore - Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">SimpleStore.</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="cart.html">Cart <span class="cart-count">0</span></a>
+                
+                <span class="logged-out-only">
+                    <a href="login.html">Login</a>
+                </span>
+                <span class="logged-out-only">
+                    <a href="register.html" class="btn" style="padding: 0.5rem 1rem;">Sign Up</a>
+                </span>
+
+                <span class="logged-in-only auth-hidden" id="nav-username" style="font-weight: 600;"></span>
+                <span class="logged-in-only auth-hidden">
+                    <a href="#" id="logout-btn">Logout</a>
+                </span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1 style="margin-bottom: 2rem; font-size: 2rem;">Featured Products</h1>
+        <div id="products-container" class="products-grid">
+            <!-- Products will be loaded here via JS -->
+            <p>Loading products...</p>
+        </div>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+        async function fetchProducts() {
+            try {
+                const response = await fetch(`${API_URL}/products`);
+                const products = await response.json();
+                renderProducts(products);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+                document.getElementById('products-container').innerHTML = '<p>Failed to load products.</p>';
+            }
+        }
+
+        function renderProducts(products) {
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+
+            products.forEach(product => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${product.image_url}" alt="${product.name}" class="product-image" onclick="window.location.href='product.html?id=${product.id}'">
+                    <div class="product-info">
+                        <h3 class="product-title" onclick="window.location.href='product.html?id=${product.id}'">${product.name}</h3>
+                        <div class="product-price">${formatPrice(product.price)}</div>
+                        <p class="product-desc">${product.description.substring(0, 60)}...</p>
+                        <button class="btn add-to-cart-btn" style="width: 100%;">Add to Cart</button>
+                    </div>
+                `;
+
+                // Add event listener to the button
+                const btn = card.querySelector('.add-to-cart-btn');
+                btn.addEventListener('click', () => {
+                    addToCart(product);
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchProducts);
+    </script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimpleStore - Product Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">SimpleStore.</a>
+            <div class="nav-links">
+                <a href="index.html">Home</a>
+                <a href="cart.html">Cart <span class="cart-count">0</span></a>
+                <span class="logged-out-only"><a href="login.html">Login</a></span>
+                <span class="logged-out-only"><a href="register.html" class="btn" style="padding: 0.5rem 1rem;">Sign Up</a></span>
+                <span class="logged-in-only auth-hidden" id="nav-username" style="font-weight: 600;"></span>
+                <span class="logged-in-only auth-hidden"><a href="#" id="logout-btn">Logout</a></span>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container" id="product-container">
+        <p>Loading product details...</p>
+    </main>
+
+    <script src="js/main.js"></script>
+    <script>
+        let currentProduct = null;
+
+        async function loadProduct() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+
+            if (!productId) {
+                document.getElementById('product-container').innerHTML = '<p>Product not found.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/products/${productId}`);
+                if (!response.ok) throw new Error('Product not found');
+                currentProduct = await response.json();
+                renderProduct();
+            } catch (error) {
+                document.getElementById('product-container').innerHTML = '<p>Error loading product details.</p>';
+            }
+        }
+
+        function renderProduct() {
+            const container = document.getElementById('product-container');
+            container.innerHTML = `
+                <div class="product-detail-layout">
+                    <div>
+                        <img src="${currentProduct.image_url}" alt="${currentProduct.name}" class="detail-image">
+                    </div>
+                    <div>
+                        <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">${currentProduct.name}</h1>
+                        <div class="product-price" style="font-size: 2rem;">${formatPrice(currentProduct.price)}</div>
+                        <p style="color: var(--text-muted); margin-bottom: 2rem; line-height: 1.8;">${currentProduct.description}</p>
+                        
+                        <div style="margin-bottom: 2rem;">
+                            <span style="font-weight: 600; color: ${currentProduct.stock > 0 ? '#059669' : '#DC2626'}">
+                                ${currentProduct.stock > 0 ? 'In Stock (' + currentProduct.stock + ' available)' : 'Out of Stock'}
+                            </span>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <input type="number" id="qty-input" value="1" min="1" max="${currentProduct.stock}" style="width: 80px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-size: 1rem;">
+                            <button id="add-btn" class="btn" style="flex-grow: 1;" ${currentProduct.stock === 0 ? 'disabled' : ''}>
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('add-btn').addEventListener('click', () => {
+                const qty = parseInt(document.getElementById('qty-input').value);
+                if (qty > 0 && qty <= currentProduct.stock) {
+                    addToCart(currentProduct, qty);
+                } else {
+                    alert('Invalid quantity');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadProduct);
+    </script>
+</body>
+</html>
